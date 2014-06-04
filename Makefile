@@ -1,10 +1,11 @@
-CC=gcc
+PROGRAM = i3blocks
+CC=cc
 CFLAGS=-Wall
 
 debug: CFLAGS+=-DDEBUG -g
 
 re-search: re-search.c
-	$(CC) re-search.c -o $@ $(CFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^
 
 debug: re-search
 
