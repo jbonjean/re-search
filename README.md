@@ -1,7 +1,7 @@
 re-search
 =========
 
-Simple incremental history search, implemented to be used with fish shell.
+Basic incremental history search, implemented to be used with fish shell.
 
 It doesn't support all the terminal implementations because of some ANSI
 escape sequences used, and is only tested on GNU/Linux.
@@ -36,5 +36,5 @@ Bindings:
 * C-c, left, esc(2x) to cancel search.
 * Enter, right to accept result.
 
-NOTE: I am not a C developper so please don't complain about the code, fork it
+NOTE: I am not a C developer so please don't complain about the code, fork it
 and submit a pull request instead.
