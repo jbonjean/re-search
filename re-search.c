@@ -110,6 +110,7 @@ int parse_fish_history() {
 			history[history_size] = malloc(strlen(cmdline) + 1);
 			if (!history[history_size]) {
 				error("cannot allocate memory");
+				fclose(fp);
 				return 1;
 			}
 			strncpy(history[history_size], cmdline, strlen(cmdline) + 1);
@@ -117,7 +118,8 @@ int parse_fish_history() {
 
 			if (history_size >= MAX_HISTORY_SIZE) {
 				error("too many history entries");
-				break;
+				fclose(fp);
+				return 1;
 			}
 		}
 		// we need to consume at least one character for fscan to continue
@@ -144,17 +146,20 @@ void restore_terminal() {
 	fflush(stderr);
 }
 
-void cleanup() {
-	debug("cleanup resources");
-
-	restore_terminal();
-
+void free_history() {
 	int i = 0;
 	for (i = 0; i < history_size; i++)
 		free(history[i]);
 
 	// just to be ensure we won't free again
 	history_size = 0;
+}
+
+void cleanup() {
+	debug("cleanup resources");
+
+	restore_terminal();
+	free_history();
 }
 
 void accept() {
@@ -179,9 +184,15 @@ int main() {
 	// handle sigint for clean exit
 	signal(SIGINT, cancel);
 
-	// prepare data and terminal
-	parse_fish_history();
-	set_input_mode();
+	// prepare terminal
+	if (set_input_mode())
+		exit(EXIT_FAILURE);
+
+	// load fish history
+	if (parse_fish_history()) {
+		free_history();
+		exit(EXIT_FAILURE);
+	}
 
 	char c;
 
