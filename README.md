@@ -36,5 +36,5 @@ Bindings:
 * C-c, left, esc(2x) to cancel search.
 * Enter, right to accept result.
 
-NOTE: I am not a C developer so please don't complain about the code, fork it
-and submit a pull request instead.
+NOTE: I am not a C developer so please don't complain about the code, fork it,
+submit a pull request, and I would be happy to merge it.
