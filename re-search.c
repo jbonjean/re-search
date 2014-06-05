@@ -349,6 +349,10 @@ int main() {
 			break;
 
 		default:
+			// exclude the first 32 non-printing characters
+			if (c < 32)
+				break;
+
 			// prevent buffer overflow
 			if (buffer_pos >= MAX_INPUT_LEN - 1)
 				continue;
