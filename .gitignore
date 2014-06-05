@@ -26,3 +26,6 @@ re-search
 # Eclipse
 .project
 .cproject
+
+# Users customizations
+config.h

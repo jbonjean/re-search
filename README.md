@@ -19,3 +19,17 @@ Internal bindings:
 * C-e, down, pg-down for forward search.
 * C-c, left, esc(2x) to cancel search.
 * Enter, right to accept result.
+
+Customize the prompt:
+
+* Stop changes tracking on `config.h`
+```
+git update-index --assume-unchanged config.h
+```
+* Redefine the prompt macro in `config.h`, for example, a very simple prompt
+could look like:
+```
+#define PROMPT(buffer, direction, index, result) \
+        do { fprintf(stderr, "%s", result); } while (0)
+```
+* Recompile

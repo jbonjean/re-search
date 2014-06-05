@@ -20,6 +20,7 @@
 #include <termios.h>
 #include <string.h>
 #include <signal.h>
+#include "config.h"
 
 #define NORMAL  "\x1B[0m"
 #define RED  "\x1B[31m"
@@ -38,10 +39,23 @@
 #else
 #define debug(fmt, ...) \
 	do { } while (0)
-#endif
+#endif /* DEBUG */
 
 #define error(fmt, ...) \
 	fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+
+#ifndef PROMPT
+#define PROMPT(buffer, direction, index, result) \
+	do { \
+		/* print the first part of the prompt */ \
+		fprintf(stderr, "<%s search> %s", direction, buffer); \
+		if (index > 0) { \
+			/* if there is a result, append it */ \
+			i = fprintf(stderr, " (%d)[%s]", index, result); \
+			/* move back the cursor after the user input */ \
+			fprintf(stderr, "\033[%dD", i); \
+		}} while (0)
+#endif /* PROMPT */
 
 typedef enum {
 	SEARCH_BACKWARD, SEARCH_FORWARD
@@ -242,18 +256,13 @@ int main() {
 		// erase line
 		fprintf(stderr, "\033[2K\r");
 
-		// print the first part of the prompt
-		fprintf(stderr, "%s<%s search> %s", search_index > 0 ? GREEN : RED,
-				action == SEARCH_BACKWARD ? "backward" : "forward", buffer);
+		// print the color
+		fprintf(stderr, "%s", search_index > 0 ? GREEN : RED);
 
-		// if there is a result, append it
-		if (search_index > 0) {
-			i = fprintf(stderr, " (%d)[%s]", search_index,
-					history[search_result_index]);
-
-			// move back the cursor after the user input
-			fprintf(stderr, "\033[%dD", i);
-		}
+		// print the prompt
+		PROMPT(buffer, action == SEARCH_BACKWARD ? "backward" : "forward",
+				search_index,
+				search_index > 0 ? history[search_result_index] : "");
 
 		fflush(stderr);
 
