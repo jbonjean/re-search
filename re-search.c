@@ -20,6 +20,7 @@
 #include <termios.h>
 #include <string.h>
 #include <signal.h>
+#include <fcntl.h>
 #include "config.h"
 
 #define NORMAL  "\x1B[0m"
@@ -160,6 +161,21 @@ void restore_terminal() {
 	fflush(stderr);
 }
 
+int nb_getchar() {
+	int c;
+
+	// mark stdin nonblocking
+	int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+	fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+
+	c = getchar();
+
+	// restore stdin
+	fcntl(STDIN_FILENO, F_SETFL, flags);
+
+	return c;
+}
+
 void free_history() {
 	int i = 0;
 	for (i = 0; i < history_size; i++)
@@ -270,10 +286,8 @@ int main() {
 
 		switch (c) {
 		case 27:
-			c = getchar();
-			if (c == 27) {
-				// second escape (we cannot just catch a single escape because
-				// of the multi-characters sequences
+			c = nb_getchar();
+			if (c == -1) { // esc
 				cancel();
 				break;
 			} else if (c != 91 && c != 79) {
