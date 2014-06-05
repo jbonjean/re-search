@@ -34,7 +34,7 @@ could look like:
 #define PROMPT(buffer, direction, index, result) \
         do { fprintf(stderr, "%s", result); } while (0)
 ```
-or, a more compact of the native prompt:
+or, a more compact version of the native prompt:
 ```
 #define PROMPT(buffer, direction, index, result) \
         do { \
