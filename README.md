@@ -6,6 +6,8 @@ Basic incremental history search, implemented to be used with fish shell.
 It doesn't support all the terminal implementations because of some ANSI
 escape sequences used, and is only tested on GNU/Linux.
 
+### Install
+
 * Compile and add the binary to your PATH.
 * Copy the file `re_search.fish` to the directory `~/.config/fish/functions/`.
 * Add the binding to `~/.config/fish/functions/fish_user_key_bindings.fish`:
@@ -13,16 +15,16 @@ escape sequences used, and is only tested on GNU/Linux.
 bind \cr re_search
 ```
 
-Internal bindings:
+### Internal key bindings
 
 * C-r, up, pg-up for backward search.
 * C-e, down, pg-down for forward search.
 * C-c, left, esc(2x) to cancel search.
 * Enter, right to accept result.
 
-Customize the prompt:
+### Customize the prompt
 
-* Stop changes tracking on `config.h`
+* Stop tracking changes on `config.h`
 ```
 git update-index --assume-unchanged config.h
 ```
