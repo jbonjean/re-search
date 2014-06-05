@@ -19,8 +19,8 @@ bind \cr re_search
 
 * C-r, up, pg-up for backward search.
 * C-e, down, pg-down for forward search.
-* C-c, left, esc(2x) to cancel search.
-* Enter, right to accept result.
+* C-c, left, esc(2x), home to cancel search.
+* Enter, right, end to accept result.
 
 ### Customize the prompt
 

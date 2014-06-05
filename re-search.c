@@ -67,13 +67,13 @@ char buffer[MAX_INPUT_LEN];
 int history_size;
 int search_result_index;
 
-void reset_input_mode(void) {
+void reset_input_mode() {
 	debug("restore terminal settings");
 
 	tcsetattr(STDIN_FILENO, TCSANOW, &saved_attributes);
 }
 
-int set_input_mode(void) {
+int set_input_mode() {
 	debug("setup terminal");
 
 	struct termios tattr;
@@ -260,7 +260,7 @@ int main() {
 		fprintf(stderr, "%s", search_index > 0 ? GREEN : RED);
 
 		// print the prompt
-		PROMPT(buffer, action == SEARCH_BACKWARD ? "backward" : "forward",
+		PROMPT(buffer, (action == SEARCH_BACKWARD ? "backward" : "forward"),
 				search_index,
 				search_index > 0 ? history[search_result_index] : "");
 
@@ -276,7 +276,7 @@ int main() {
 				// of the multi-characters sequences
 				cancel();
 				break;
-			} else if (c != 91) {
+			} else if (c != 91 && c != 79) {
 				ungetc(c, stdin);
 				break;
 			}
@@ -295,9 +295,11 @@ int main() {
 			case 66: // down
 				action = SEARCH_FORWARD;
 				break;
+			case 70: // end
 			case 67: // right
 				accept();
 				break;
+			case 72: // home
 			case 68: // left
 				cancel();
 				break;
@@ -308,7 +310,7 @@ int main() {
 			cancel();
 			break;
 
-		case '\n': // Enter
+		case '\n': // enter
 			accept();
 			break;
 
@@ -320,7 +322,7 @@ int main() {
 			action = SEARCH_FORWARD;
 			break;
 
-		case 127: // Backspace
+		case 127: // backspace
 			if (buffer_pos <= 0)
 				continue;
 
