@@ -34,4 +34,16 @@ could look like:
 #define PROMPT(buffer, direction, index, result) \
         do { fprintf(stderr, "%s", result); } while (0)
 ```
+or, a more compact of the native prompt:
+```
+#define PROMPT(buffer, direction, index, result) \
+        do { \
+        	fprintf(stderr, "[%c%d] %s", direction[0], index, buffer); \
+        	int i = 0; \
+        	if (index > 0) {\
+        		i = fprintf(stderr, " > %s", result); \
+        		fprintf(stderr, "\033[%dD", i); \
+        	} \
+        } while (0)
+ ```
 * Recompile
