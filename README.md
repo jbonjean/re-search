@@ -39,8 +39,8 @@ or, a more compact version of the native prompt:
 #define PROMPT(buffer, direction, index, result) \
         do { \
         	fprintf(stderr, "[%c%d] %s", direction[0], index, buffer); \
-        	int i = 0; \
         	if (index > 0) {\
+	        	int i = 0; \
         		i = fprintf(stderr, " > %s", result); \
         		fprintf(stderr, "\033[%dD", i); \
         	} \
