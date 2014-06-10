@@ -18,9 +18,10 @@ bind \cr re_search
 ### Internal key bindings
 
 * C-r, up, pg-up: backward search.
-* C-e, down, pg-down: forward search.
+* C-s, down, pg-down: forward search.
 * C-c, left, esc, home: cancel search.
-* Enter, right, end: accept result.
+* Right, end: accept result.
+* Enter: execute result.
 
 ### Customize the prompt
 

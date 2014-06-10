@@ -62,6 +62,11 @@ typedef enum {
 	SEARCH_BACKWARD, SEARCH_FORWARD
 } action_t;
 
+/* will be used as exit code to differenciate cases */
+typedef enum {
+	RESULT_EXECUTE = 0, SEARCH_CANCEL = 1, RESULT_EDIT = 10
+} exit_t;
+
 struct termios saved_attributes;
 char *history[MAX_HISTORY_SIZE];
 char buffer[MAX_INPUT_LEN];
@@ -192,18 +197,18 @@ void cleanup() {
 	free_history();
 }
 
-void accept() {
+void accept(int status) {
 	// print result/buffer to stdout
 	fprintf(stdout, "%s",
 			search_result_index < history_size ?
 					history[search_result_index] : buffer);
 	cleanup();
-	exit(EXIT_SUCCESS);
+	exit(status);
 }
 
 void cancel() {
 	cleanup();
-	exit(EXIT_FAILURE);
+	exit(SEARCH_CANCEL);
 }
 
 int main() {
@@ -311,7 +316,7 @@ int main() {
 				break;
 			case 70: // end
 			case 67: // right
-				accept();
+				accept(RESULT_EDIT);
 				break;
 			case 72: // home
 			case 68: // left
@@ -325,14 +330,14 @@ int main() {
 			break;
 
 		case '\n': // enter
-			accept();
+			accept(RESULT_EXECUTE);
 			break;
 
 		case 18: //C-r
 			action = SEARCH_BACKWARD;
 			break;
 
-		case 5: //C-e
+		case 19: //C-s
 			action = SEARCH_FORWARD;
 			break;
 
