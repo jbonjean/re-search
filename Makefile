@@ -5,7 +5,7 @@ CFLAGS=-Wall
 debug: CFLAGS+=-DDEBUG -g
 
 re-search: re-search.c config.h
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) $^ -o $@
 
 debug: re-search
 
