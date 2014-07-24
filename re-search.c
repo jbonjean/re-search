@@ -342,6 +342,7 @@ int main() {
 			break;
 
 		case 127: // backspace
+		case 8: // backspace
 			if (buffer_pos <= 0)
 				continue;
 
