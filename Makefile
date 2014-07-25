@@ -1,4 +1,3 @@
-PROGRAM = i3blocks
 CC=cc
 CFLAGS=-Wall
 
