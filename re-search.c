@@ -32,6 +32,7 @@
 
 #define MAX_INPUT_LEN 100
 #define MAX_LINE_LEN 512
+#define MIN_CMD_LEN 3
 #define MAX_HISTORY_SIZE (1024 * 256)
 
 #ifdef DEBUG
@@ -108,9 +109,10 @@ int parse_fish_history() {
 	debug("parse fish history");
 
 	FILE* fp;
-	int res;
 	char path[1024];
-	char cmdline[MAX_LINE_LEN + 1];
+	char cmdline[MAX_LINE_LEN];
+	char duplicate;
+	int i,j;
 
 	snprintf(path, sizeof(path), "%s/.config/fish/fish_history",
 			getenv("HOME"));
@@ -122,29 +124,54 @@ int parse_fish_history() {
 	}
 
 	// parse the fish history file and search for line with pattern "- cmd: *"
-	while ((res = fscanf(fp, "- cmd: %" XSTR(MAX_LINE_LEN) "[^\n]\n", cmdline))
-			!= EOF) {
-		if (res == 1) {
-			// append to history array, we don't check for duplicates as it
-			// should be handled by the shell
-			history[history_size] = malloc(strlen(cmdline) + 1);
-			if (!history[history_size]) {
-				error("cannot allocate memory");
-				fclose(fp);
-				return 1;
-			}
-			strncpy(history[history_size], cmdline, strlen(cmdline) + 1);
-			history_size++;
+	while (fgets(cmdline, sizeof(cmdline), fp) != NULL) {
 
-			if (history_size >= MAX_HISTORY_SIZE) {
-				error("too many history entries");
-				fclose(fp);
-				return 1;
+		// skip if we didn't match the pattern
+		if (sscanf(cmdline, "- cmd: %[^\n]\n", cmdline) != 1)
+			continue;
+
+		// check for length
+		if (strlen(cmdline) < MIN_CMD_LEN)
+			continue;
+
+		// sanitize
+		i = 0; j = 0;
+		while ( i < strlen(cmdline) - 1) {
+			if ( cmdline[i] == '\\' &&
+				cmdline[i+1] == '\\') {
+				i++;
+			}
+			cmdline[j] = cmdline[i];
+			i++; j++;
+		}
+		cmdline[j+1] = '\0';
+
+		// check for duplicate
+		duplicate = 0;
+		for (i = 0 ; i < history_size ; i++) {
+			if (!strcmp(history[i], cmdline)) {
+				duplicate = 1;
+				break;
 			}
 		}
-		// we need to consume at least one character for fscan to continue
-		// scanning (why?), should we use fseek?
-		fgetc(fp);
+		if (duplicate)
+			continue;
+
+		// append to history array
+		history[history_size] = malloc(strlen(cmdline) + 1);
+		if (!history[history_size]) {
+			error("cannot allocate memory");
+			fclose(fp);
+			return 1;
+		}
+		strncpy(history[history_size], cmdline, strlen(cmdline) + 1);
+		history_size++;
+
+		if (history_size >= MAX_HISTORY_SIZE) {
+			error("too many history entries");
+			fclose(fp);
+			return 1;
+		}
 	}
 
 	fclose(fp);
