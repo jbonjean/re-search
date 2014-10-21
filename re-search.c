@@ -32,7 +32,7 @@
 
 #define MAX_INPUT_LEN 100
 #define MAX_LINE_LEN 512
-#define MAX_HISTORY_SIZE 8192
+#define MAX_HISTORY_SIZE (1024 * 256)
 
 #ifdef DEBUG
 #define debug(fmt, ...) \
@@ -70,7 +70,7 @@ typedef enum {
 struct termios saved_attributes;
 char *history[MAX_HISTORY_SIZE];
 char buffer[MAX_INPUT_LEN];
-int history_size;
+unsigned long history_size;
 int search_result_index;
 
 void reset_input_mode() {
