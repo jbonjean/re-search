@@ -352,11 +352,15 @@ int main() {
 			}
 			break;
 
-		case '\004': // C-d
+		case 4: // C-d
 			cancel();
 			break;
 
-		case '\n': // enter
+		case 5: // C-e
+			accept(RESULT_EDIT);
+			break;
+
+		case 10: // enter
 			accept(RESULT_EXECUTE);
 			break;
 

@@ -20,7 +20,7 @@ bind \cr re_search
 * C-r, up, pg-up: backward search.
 * C-s, down, pg-down: forward search.
 * C-c, left, esc, home: cancel search.
-* Right, end: accept result.
+* C-e, right, end: accept result.
 * Enter: execute result.
 
 ### Customize the prompt
