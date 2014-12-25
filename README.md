@@ -15,6 +15,16 @@ escape sequences used, and is only tested on GNU/Linux.
 bind \cr re_search
 ```
 
+#### Duplicate history entries
+
+Because of performance issues with large history file, the duplicate check is
+disabled by default. If you want to enable it, just pass the correct cflag to
+make:
+
+```
+make CFLAGS=-DCHECK_DUPLICATES
+```
+
 ### Internal key bindings
 
 * C-r, up, pg-up: backward search.

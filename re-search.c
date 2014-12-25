@@ -111,8 +111,10 @@ int parse_fish_history() {
 	FILE* fp;
 	char path[1024];
 	char cmdline[MAX_LINE_LEN];
-	char duplicate;
 	int i,j;
+#ifdef CHECK_DUPLICATES
+	char duplicate;
+#endif
 
 	snprintf(path, sizeof(path), "%s/.config/fish/fish_history",
 			getenv("HOME"));
@@ -126,11 +128,15 @@ int parse_fish_history() {
 	// parse the fish history file and search for line with pattern "- cmd: *"
 	while (fgets(cmdline, sizeof(cmdline), fp) != NULL) {
 
-		// skip if we didn't match the pattern
+		// skip if truncated
+		if (cmdline[strlen(cmdline) - 1] != '\n')
+			continue;
+
+		// skip if pattern not matched
 		if (sscanf(cmdline, "- cmd: %[^\n]\n", cmdline) != 1)
 			continue;
 
-		// check for length
+		// skip if too short
 		if (strlen(cmdline) < MIN_CMD_LEN)
 			continue;
 
@@ -146,7 +152,8 @@ int parse_fish_history() {
 		}
 		cmdline[j+1] = '\0';
 
-		// check for duplicate
+#ifdef CHECK_DUPLICATES
+		// check for duplicates
 		duplicate = 0;
 		for (i = 0 ; i < history_size ; i++) {
 			if (!strcmp(history[i], cmdline)) {
@@ -156,6 +163,7 @@ int parse_fish_history() {
 		}
 		if (duplicate)
 			continue;
+#endif
 
 		// append to history array
 		history[history_size] = malloc(strlen(cmdline) + 1);
