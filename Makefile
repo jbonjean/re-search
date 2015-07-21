@@ -1,7 +1,7 @@
 CC=cc
-CFLAGS=-Wall
+CFLAGS=-Wall -O2
 
-debug: CFLAGS+=-DDEBUG -g
+debug: CFLAGS=-DDEBUG -g -Wall
 
 re-search: re-search.c
 	$(CC) $(CFLAGS) $^ -o $@
