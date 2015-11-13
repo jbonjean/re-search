@@ -133,7 +133,7 @@ int parse_fish_history() {
 
 		// skip if truncated
 		len = strlen(cmdline);
-		if (cmdline[len - 1] != '\n')
+		if (len == 0 || cmdline[len - 1] != '\n')
 			continue;
 		cmdline[--len] = 0; // remove \n
 
