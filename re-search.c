@@ -23,7 +23,7 @@
 #include <fcntl.h>
 #include "config.h"
 
-#define NORMAL	"\x1B[0m"
+#define NORMAL  "\x1B[0m"
 #define RED  "\x1B[31m"
 #define GREEN  "\x1B[32m"
 
@@ -155,7 +155,7 @@ int parse_fish_history() {
 			i++; j++;
 		}
 		cmdline[j] = '\0';
-        len = j;
+		len = j;
 
 #ifdef CHECK_DUPLICATES
 		// check for duplicates
