@@ -59,6 +59,9 @@
 		}} while (0)
 #endif /* PROMPT */
 
+static const char command_prefix[] = "- cmd: ";
+static const int command_prefix_len = sizeof(command_prefix) - 1;
+
 typedef enum {
 	SEARCH_BACKWARD, SEARCH_FORWARD
 } action_t;
@@ -111,7 +114,7 @@ int parse_fish_history() {
 	FILE* fp;
 	char path[1024];
 	char cmdline[MAX_LINE_LEN];
-	int i,j;
+	int i,j,len;
 #ifdef CHECK_DUPLICATES
 	char duplicate;
 #endif
@@ -129,28 +132,30 @@ int parse_fish_history() {
 	while (fgets(cmdline, sizeof(cmdline), fp) != NULL) {
 
 		// skip if truncated
-		if (cmdline[strlen(cmdline) - 1] != '\n')
+		len = strlen(cmdline);
+		if (len == 0 || cmdline[len - 1] != '\n')
+			continue;
+		cmdline[--len] = 0; // remove \n
+
+		// skip if too short
+		if (len < MIN_CMD_LEN + command_prefix_len)
 			continue;
 
 		// skip if pattern not matched
-		if (sscanf(cmdline, "- cmd: %[^\n]\n", cmdline) != 1)
-			continue;
-
-		// skip if too short
-		if (strlen(cmdline) < MIN_CMD_LEN)
+		if (strncmp(command_prefix, cmdline, command_prefix_len) != 0)
 			continue;
 
 		// sanitize
-		i = 0; j = 0;
-		while ( i < strlen(cmdline) - 1) {
-			if ( cmdline[i] == '\\' &&
-				cmdline[i+1] == '\\') {
+		i = command_prefix_len; j = 0;
+		while (i < len) {
+			if (i < (len - 1) && cmdline[i] == '\\' && cmdline[i+1] == '\\') {
 				i++;
 			}
 			cmdline[j] = cmdline[i];
 			i++; j++;
 		}
-		cmdline[j+1] = '\0';
+		cmdline[j] = '\0';
+		len = j;
 
 #ifdef CHECK_DUPLICATES
 		// check for duplicates
@@ -166,13 +171,13 @@ int parse_fish_history() {
 #endif
 
 		// append to history array
-		history[history_size] = malloc(strlen(cmdline) + 1);
+		history[history_size] = malloc(len + 1);
 		if (!history[history_size]) {
 			error("cannot allocate memory");
 			fclose(fp);
 			return 1;
 		}
-		strncpy(history[history_size], cmdline, strlen(cmdline) + 1);
+		strncpy(history[history_size], cmdline, len + 1);
 		history_size++;
 
 		if (history_size >= MAX_HISTORY_SIZE) {
