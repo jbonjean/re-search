@@ -119,7 +119,7 @@ int parse_fish_history() {
 	char duplicate;
 #endif
 
-	snprintf(path, sizeof(path), "%s/.config/fish/fish_history",
+	snprintf(path, sizeof(path), "%s/.local/share/fish/fish_history",
 			getenv("HOME"));
 
 	fp = fopen(path, "r");
