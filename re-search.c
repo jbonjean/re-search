@@ -374,6 +374,7 @@ int main() {
 			break;
 
 		case 10: // enter
+		case 13: // new-line
 			accept(RESULT_EXECUTE);
 			break;
 
