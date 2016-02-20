@@ -108,21 +108,24 @@ int set_input_mode() {
 	return 0;
 }
 
+FILE *try_open_fish_history(const char *name) {
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/%s", getenv("HOME"), name);
+	return fopen(path, "r");
+}
+
 int parse_fish_history() {
 	debug("parse fish history");
 
 	FILE* fp;
-	char path[1024];
 	char cmdline[MAX_LINE_LEN];
 	int i,j,len;
 #ifdef CHECK_DUPLICATES
 	char duplicate;
 #endif
 
-	snprintf(path, sizeof(path), "%s/.config/fish/fish_history",
-			getenv("HOME"));
-
-	fp = fopen(path, "r");
+	fp = try_open_fish_history(".local/share/fish/fish_history");
+	if (!fp) fp = try_open_fish_history(".config/fish/fish_history");
 	if (!fp) {
 		error("cannot open history file");
 		return 1;
