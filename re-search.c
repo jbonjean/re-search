@@ -46,10 +46,10 @@
 	fprintf(stderr, fmt "\n", ##__VA_ARGS__)
 
 #ifndef PROMPT
-#define PROMPT(buffer, direction, index, result) \
+#define PROMPT(buffer, saved, direction, index, result) \
 	do { \
 		/* print the first part of the prompt */ \
-		fprintf(stderr, "<%s search> %s", direction, buffer); \
+		fprintf(stderr, "%s<%s search> %s", saved, direction, buffer); \
 		if (index > 0) { \
 			/* if there is a result, append it */ \
 			i = fprintf(stderr, " (%d)[%s]", index, result); \
@@ -78,6 +78,7 @@ typedef enum {
 struct termios saved_attributes;
 char *history[MAX_HISTORY_SIZE];
 char buffer[MAX_INPUT_LEN];
+char saved[128];
 unsigned long history_size;
 int search_result_index;
 
@@ -304,7 +305,7 @@ int main() {
 	fprintf(stderr, "\033[s");
 
 	while (1) {
-		if (buffer_pos > 0) {
+		if (buffer_pos > 0 || strlen(saved) > 0) {
 			// search in the history array
 			// TODO: factorize?
 			if (action == SEARCH_BACKWARD) {
@@ -333,7 +334,7 @@ int main() {
 		fprintf(stderr, "%s", search_index > 0 ? GREEN : RED);
 
 		// print the prompt
-		PROMPT(buffer, (action == SEARCH_BACKWARD ? "backward" : "forward"),
+		PROMPT(buffer, saved, (action == SEARCH_BACKWARD ? "backward" : "forward"),
 				search_index,
 				search_index > 0 ? history[search_result_index] : "");
 
@@ -398,17 +399,46 @@ int main() {
 			action = SEARCH_FORWARD;
 			break;
 
+		case 21: //C-u
+			if (strlen(buffer) == 0)
+				break;
+			int j = 0;
+			// filter the history array to remove non-matching entries
+			for (i = 0; i < history_size; i++) {
+				if (strstr(history[i], buffer) && i != j) {
+					history[j] = history[i];
+					// update the search result index
+					if (search_result_index == i)
+						search_result_index = j;
+					j++;
+				} else
+					free(history[i]);
+			}
+			// adjust history size
+			history_size = j;
+			// add the saved search keyword
+			strncat(saved, "[", sizeof(saved));
+			strncat(saved, buffer, sizeof(saved));
+			strncat(saved, "]", sizeof(saved));
+			// reset te buffer
+			buffer[0] = '\0';
+			buffer_pos = 0;
+			// reset search
+			action = SEARCH_BACKWARD;
+			search_result_index = history_size;
+			search_index = 0;
+			break;
+
 		case 127: // backspace
 		case 8: // backspace
-			if (buffer_pos <= 0)
-				continue;
-
-			buffer[--buffer_pos] = '\0';
+			if (buffer_pos > 0)
+				buffer[--buffer_pos] = '\0';
 
 			// reset search
 			action = SEARCH_BACKWARD;
 			search_result_index = history_size;
 			search_index = 0;
+
 			break;
 
 		default:

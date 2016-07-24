@@ -25,12 +25,24 @@ make:
 make CFLAGS=-DCHECK_DUPLICATES
 ```
 
+#### Sub-search (experimental)
+
+This feature allows you to do a new search in the current results.
+
+For example, you are looking for the git-clone command of couchbase repository,
+the following sequence shows how it could help you:
+
+* [C-r] clone
+* [C-u]
+* couchbase
+
 ### Internal key bindings
 
 * C-r, up, pg-up: backward search.
 * C-s, down, pg-down: forward search.
 * C-c, left, esc, home: cancel search.
 * C-e, right, end: accept result.
+* C-u: save search result and start sub-search.
 * Enter: execute result.
 
 ### Customize the prompt
@@ -47,7 +59,7 @@ could look like:
 ```
 or, a more compact version of the native prompt:
 ```
-#define PROMPT(buffer, direction, index, result) \
+#define PROMPT(buffer, saved, direction, index, result) \
         do { \
         	fprintf(stderr, "[%c%d] %s", direction[0], index, buffer); \
         	if (index > 0) {\
@@ -76,8 +88,8 @@ re_search() {
                 history -s $(cat /tmp/.re-search)
                 history -a
                 # execute the command
-		echo "> $(cat /tmp/.re-search)"
-		eval $(cat /tmp/.re-search)
+                echo "> $(cat /tmp/.re-search)"
+                eval $(cat /tmp/.re-search)
         else
                 # update current prompt
                 READLINE_LINE="$(cat /tmp/.re-search)"
@@ -91,4 +103,8 @@ bind -x '"\C-r":"re_search"'
 ```
 shopt -s histappend
 PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+```
+* Also, because ctrl-s is used for forward search, you may need to disable flow control:
+```
+stty -ixon
 ```
