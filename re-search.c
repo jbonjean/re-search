@@ -51,10 +51,12 @@
 		/* print the first part of the prompt */ \
 		fprintf(stderr, "%s<%s search> %s", saved, direction, buffer); \
 		if (index > 0) { \
+			/* save cursor position */ \
+			fprintf(stderr, "\033[s"); \
 			/* if there is a result, append it */ \
-			i = fprintf(stderr, " (%d)[%s]", index, result); \
-			/* move back the cursor after the user input */ \
-			fprintf(stderr, "\033[%dD", i); \
+			fprintf(stderr, " (%d)[%s]", index, result); \
+			/* restore cursor position */ \
+			fprintf(stderr, "\033[u"); \
 		}} while (0)
 #endif /* PROMPT */
 
@@ -211,10 +213,10 @@ void restore_terminal() {
 	fprintf(stderr, "%s", NORMAL);
 
 	// clear last printed results
-	fprintf(stderr, "\33[2K");
+	fprintf(stderr, "\33[2K\r");
 
-	// restore cursor position
-	fprintf(stderr, "\033[u");
+	// restore line wrapping
+	fprintf(stderr, "\033[?7;h");
 
 	fflush(stderr);
 }
@@ -301,8 +303,8 @@ int main() {
 			buffer[--buffer_pos] = '\0';
 	}
 
-	// save cursor position
-	fprintf(stderr, "\033[s");
+	// disable line wrapping
+	fprintf(stderr, "\033[?7l");
 
 	while (1) {
 		if (buffer_pos > 0 || strlen(saved) > 0) {
