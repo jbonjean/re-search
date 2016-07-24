@@ -128,7 +128,7 @@ int parse_history() {
 	char cmdline[MAX_LINE_LEN];
 	int i,j,len;
 #ifdef CHECK_DUPLICATES
-	char duplicate;
+	int k,dup;
 #endif
 
 #ifdef BASH
@@ -172,19 +172,6 @@ int parse_history() {
 		len = j;
 #endif
 
-#ifdef CHECK_DUPLICATES
-		// check for duplicates
-		duplicate = 0;
-		for (i = 0 ; i < history_size ; i++) {
-			if (!strcmp(history[i], cmdline)) {
-				duplicate = 1;
-				break;
-			}
-		}
-		if (duplicate)
-			continue;
-#endif
-
 		// append to history array
 		history[history_size] = malloc(len + 1);
 		if (!history[history_size]) {
@@ -203,6 +190,30 @@ int parse_history() {
 	}
 
 	fclose(fp);
+
+#ifdef CHECK_DUPLICATES
+	// check for duplicates, it is easier to do it afterward to preserve
+	// history order
+	k = 0;
+	for (i = 0 ; i < history_size ; i++) {
+		dup = 0;
+		for (j = i + 1 ; j < history_size ; j++) {
+			if (!strcmp(history[i], history[j])) {
+				dup = 1;
+				break;
+			}
+		}
+		if (dup) {
+			free(history[i]);
+		} else {
+			if (i != k)
+				history[k] = history[i];
+			k++;
+		}
+	}
+	// adjust history size
+	history_size = k;
+#endif
 
 	debug("%d entries loaded", history_size);
 	return 0;
@@ -288,7 +299,7 @@ int main() {
 
 	int search_index = 0;
 	int buffer_pos = 0;
-	int i = 0;
+	int i, j;
 	action_t action = SEARCH_BACKWARD;
 	search_result_index = history_size;
 
@@ -404,7 +415,7 @@ int main() {
 		case 21: //C-u
 			if (strlen(buffer) == 0)
 				break;
-			int j = 0;
+			j = 0;
 			// filter the history array to remove non-matching entries
 			for (i = 0; i < history_size; i++) {
 				if (strstr(history[i], buffer) && i != j) {
