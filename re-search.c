@@ -32,7 +32,6 @@
 
 #define MAX_INPUT_LEN 100
 #define MAX_LINE_LEN 512
-#define MIN_CMD_LEN 3
 #define MAX_HISTORY_SIZE (1024 * 256)
 
 #ifdef DEBUG
@@ -59,8 +58,13 @@
 		}} while (0)
 #endif /* PROMPT */
 
-static const char command_prefix[] = "- cmd: ";
-static const int command_prefix_len = sizeof(command_prefix) - 1;
+#ifdef BASH
+	#define MIN_CMD_LEN 3
+#else
+	#define CMD_PREFIX "- cmd: "
+	#define CMD_PREFIX_LEN 7
+	#define MIN_CMD_LEN 10
+#endif /* BASH */
 
 typedef enum {
 	SEARCH_BACKWARD, SEARCH_FORWARD
@@ -108,14 +112,14 @@ int set_input_mode() {
 	return 0;
 }
 
-FILE *try_open_fish_history(const char *name) {
+FILE *try_open_history(const char *name) {
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/%s", getenv("HOME"), name);
 	return fopen(path, "r");
 }
 
-int parse_fish_history() {
-	debug("parse fish history");
+int parse_history() {
+	debug("parse history");
 
 	FILE* fp;
 	char cmdline[MAX_LINE_LEN];
@@ -124,14 +128,18 @@ int parse_fish_history() {
 	char duplicate;
 #endif
 
-	fp = try_open_fish_history(".local/share/fish/fish_history");
-	if (!fp) fp = try_open_fish_history(".config/fish/fish_history");
+#ifdef BASH
+	fp = try_open_history(".bash_history");
+#else
+	fp = try_open_history(".local/share/fish/fish_history");
+	if (!fp) fp = try_open_history(".config/fish/fish_history");
+#endif
 	if (!fp) {
 		error("cannot open history file");
 		return 1;
 	}
 
-	// parse the fish history file and search for line with pattern "- cmd: *"
+	// parse the history file
 	while (fgets(cmdline, sizeof(cmdline), fp) != NULL) {
 
 		// skip if truncated
@@ -141,15 +149,15 @@ int parse_fish_history() {
 		cmdline[--len] = 0; // remove \n
 
 		// skip if too short
-		if (len < MIN_CMD_LEN + command_prefix_len)
+		if (len < MIN_CMD_LEN)
 			continue;
-
+#ifndef BASH
 		// skip if pattern not matched
-		if (strncmp(command_prefix, cmdline, command_prefix_len) != 0)
+		if (strncmp(CMD_PREFIX, cmdline, CMD_PREFIX_LEN) != 0)
 			continue;
 
 		// sanitize
-		i = command_prefix_len; j = 0;
+		i = CMD_PREFIX_LEN; j = 0;
 		while (i < len) {
 			if (i < (len - 1) && cmdline[i] == '\\' && cmdline[i+1] == '\\') {
 				i++;
@@ -159,6 +167,7 @@ int parse_fish_history() {
 		}
 		cmdline[j] = '\0';
 		len = j;
+#endif
 
 #ifdef CHECK_DUPLICATES
 		// check for duplicates
@@ -266,8 +275,8 @@ int main() {
 	if (set_input_mode())
 		exit(EXIT_FAILURE);
 
-	// load fish history
-	if (parse_fish_history()) {
+	// load history
+	if (parse_history()) {
 		free_history();
 		exit(EXIT_FAILURE);
 	}

@@ -58,3 +58,37 @@ or, a more compact version of the native prompt:
         } while (0)
  ```
 * Recompile
+
+### Bash support (experimental)
+
+* Switch to Bash support with the compilation flag:
+```
+make CFLAGS=-DBASH
+```
+* Add the binding to `~/.bashrc`:
+```
+re_search() {
+        SEARCH_BUFFER="$READLINE_LINE" re-search > /tmp/.re-search
+        res="$?"
+        [ -s /tmp/.re-search ] || return
+        if [ "$res" -eq "0" ]; then
+                # add to bash history
+                history -s $(cat /tmp/.re-search)
+                history -a
+                # execute the command
+		echo "> $(cat /tmp/.re-search)"
+		eval $(cat /tmp/.re-search)
+        else
+                # update current prompt
+                READLINE_LINE="$(cat /tmp/.re-search)"
+                READLINE_POINT=${#READLINE_LINE}
+        fi
+}
+bind -x '"\C-r":"re_search"'
+```
+* If it's not already configured, it is better to make bash save commands to
+  the history file in realtime:
+```
+shopt -s histappend
+PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+```
