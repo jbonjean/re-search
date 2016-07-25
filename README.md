@@ -77,7 +77,19 @@ or, a more compact version of the native prompt:
 ```
 make CFLAGS=-DBASH
 ```
-* Add the binding to `~/.bashrc`:
+* If it's not already configured, it is better to make bash save commands to
+  the history file in realtime:
+```
+shopt -s histappend
+PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+```
+* Also, because ctrl-s is used for forward search, you may need to disable flow control:
+```
+stty -ixon
+```
+#### Add the binding:
+
+* Solution 1:
 ```
 re_search() {
         SEARCH_BUFFER="$READLINE_LINE" re-search > /tmp/.re-search
@@ -98,13 +110,15 @@ re_search() {
 }
 bind -x '"\C-r":"re_search"'
 ```
-* If it's not already configured, it is better to make bash save commands to
-  the history file in realtime:
+* Solution 2 (simpler but requires xdotools):
 ```
-shopt -s histappend
-PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
-```
-* Also, because ctrl-s is used for forward search, you may need to disable flow control:
-```
-stty -ixon
+re_search() {
+        SEARCH_BUFFER="$READLINE_LINE" /home/jb/env/bin/re-search.bash > /tmp/.re-search
+        res="$?"
+        [ -s /tmp/.re-search ] || return 1
+        READLINE_LINE="$(cat /tmp/.re-search)"
+        READLINE_POINT=${#READLINE_LINE}
+        return $res
+}
+bind -x '"\C-r":"re_search && xdotool key KP_Enter"'
 ```
