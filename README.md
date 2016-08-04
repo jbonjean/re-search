@@ -120,5 +120,5 @@ re_search() {
         READLINE_POINT=${#READLINE_LINE}
         return $res
 }
-bind -x '"\C-r":"re_search && xdotool key KP_Enter"'
+bind -x '"\C-r":"re_search && xdotool key KP_Enter ; stty sane"'
 ```
