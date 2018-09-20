@@ -89,36 +89,14 @@ stty -ixon
 ```
 #### Add the binding:
 
-* Solution 1:
 ```
 re_search() {
-        SEARCH_BUFFER="$READLINE_LINE" re-search > /tmp/.re-search
-        res="$?"
-        [ -s /tmp/.re-search ] || return
-        if [ "$res" -eq "0" ]; then
-                # add to bash history
-                history -s $(cat /tmp/.re-search)
-                history -a
-                # execute the command
-                echo "> $(cat /tmp/.re-search)"
-                eval $(cat /tmp/.re-search)
-        else
-                # update current prompt
-                READLINE_LINE="$(cat /tmp/.re-search)"
-                READLINE_POINT=${#READLINE_LINE}
-        fi
+	SEARCH_BUFFER="$READLINE_LINE" re-search > /tmp/.re-search
+	res="$?"
+	[ -s /tmp/.re-search ] || return 1
+	READLINE_LINE="$(cat /tmp/.re-search)"
+	READLINE_POINT=${#READLINE_LINE}
+	return $res
 }
-bind -x '"\C-r":"re_search"'
-```
-* Solution 2 (simpler but requires xdotools):
-```
-re_search() {
-        SEARCH_BUFFER="$READLINE_LINE" /home/jb/env/bin/re-search.bash > /tmp/.re-search
-        res="$?"
-        [ -s /tmp/.re-search ] || return 1
-        READLINE_LINE="$(cat /tmp/.re-search)"
-        READLINE_POINT=${#READLINE_LINE}
-        return $res
-}
-bind -x '"\C-r":"re_search && xdotool key KP_Enter ; stty sane"'
+bind -x '"\C-r":"if re_search; then xdotool key KP_Enter; fi"'
 ```
