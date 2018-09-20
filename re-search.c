@@ -306,8 +306,9 @@ int main() {
 	// if the buffer environment variable is set, populate the input buffer
 	char* env_buffer = getenv("SEARCH_BUFFER");
 	if (env_buffer && strlen(env_buffer) > 0) {
-		strncpy(buffer, env_buffer, strlen(env_buffer) + 1);
-		buffer_pos = strlen(env_buffer);
+		strncpy(buffer, env_buffer, sizeof(buffer) - 1);
+		buffer[sizeof(buffer) - 1] = '\0';
+		buffer_pos = strlen(buffer);
 
 		// remove trailing '\n'
 		if (buffer[buffer_pos - 1] == '\n')
@@ -430,10 +431,10 @@ int main() {
 			// adjust history size
 			history_size = j;
 			// add the saved search keyword
-			strncat(saved, "[", sizeof(saved));
-			strncat(saved, buffer, sizeof(saved));
-			strncat(saved, "]", sizeof(saved));
-			// reset te buffer
+			strncat(saved, "[", sizeof(saved) - 1);
+			strncat(saved, buffer, sizeof(saved) - 1);
+			strncat(saved, "]", sizeof(saved) - 1);
+			// reset the buffer
 			buffer[0] = '\0';
 			buffer_pos = 0;
 			// reset search
