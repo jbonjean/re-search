@@ -26,6 +26,7 @@
 #define NORMAL  "\x1B[0m"
 #define RED  "\x1B[31m"
 #define GREEN  "\x1B[32m"
+#define CYAN   "\x1B[36m"
 
 #define XSTR(A) STR(A)
 #define STR(A) #A
@@ -49,12 +50,12 @@
 #define PROMPT(buffer, saved, direction, index, result) \
 	do { \
 		/* print the first part of the prompt */ \
-		fprintf(stderr, "%s<%s search> %s", saved, direction, buffer); \
+		fprintf(stderr, "%s<%s search> %s%s", saved, direction, CYAN, buffer); \
 		if (index > 0) { \
 			/* save cursor position */ \
 			fprintf(stderr, "\033[s"); \
 			/* if there is a result, append it */ \
-			fprintf(stderr, " (%d)[%s]", index, result); \
+			fprintf(stderr, " (%d)[%s%s%s]", index, NORMAL, result, CYAN); \
 			/* restore cursor position */ \
 			fprintf(stderr, "\033[u"); \
 		}} while (0)
