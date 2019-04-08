@@ -393,6 +393,7 @@ int main() {
 			break;
 
 		case 4: // C-d
+		case 7: // C-g
 			cancel();
 			break;
 
