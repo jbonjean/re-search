@@ -40,7 +40,7 @@ the following sequence shows how it could help you:
 
 * C-r, up, pg-up: backward search.
 * C-s, down, pg-down: forward search.
-* C-c, left, esc, home: cancel search.
+* C-c, C-g, left, esc, home: cancel search.
 * C-e, right, end: accept result.
 * C-u: save search result and start sub-search.
 * Enter: execute result.
