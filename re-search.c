@@ -415,7 +415,7 @@ int main() {
 			action = SEARCH_FORWARD;
 			break;
 
-		case 21: //C-u
+		case 17: //C-q
 			if (strlen(buffer) == 0)
 				break;
 			j = 0;
