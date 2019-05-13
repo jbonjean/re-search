@@ -445,6 +445,17 @@ int main() {
 			search_index = 0;
 			break;
 
+		case 21: // C-u
+			buffer[0] = '\0';
+			buffer_pos = 0;
+
+			// reset search
+			action = SEARCH_BACKWARD;
+			search_result_index = history_size;
+			search_index = 0;
+
+			break;
+
 		case 127: // backspace
 		case 8: // backspace
 			if (buffer_pos > 0)
