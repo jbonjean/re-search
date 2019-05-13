@@ -33,7 +33,7 @@ For example, you are looking for the git-clone command of couchbase repository,
 the following sequence shows how it could help you:
 
 * [C-r] clone
-* [C-u]
+* [C-q]
 * couchbase
 
 ### Internal key bindings
@@ -42,7 +42,7 @@ the following sequence shows how it could help you:
 * C-s, down, pg-down: forward search.
 * C-c, C-g, left, esc, home: cancel search.
 * C-e, right, end: accept result.
-* C-u: save search result and start sub-search.
+* C-q: save search result and start sub-search.
 * Enter: execute result.
 
 ### Customize the prompt
