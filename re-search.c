@@ -403,6 +403,13 @@ int main() {
 			accept(RESULT_EDIT);
 			break;
 
+		case 12: // C-l
+			// erase line
+			fprintf(stderr, "\033[2J");
+			// jump to upper left corner
+			fprintf(stderr, "\033[1;1H");
+			break;
+
 		case 10: // enter
 		case 13: // new-line
 			accept(RESULT_EXECUTE);
