@@ -49,8 +49,12 @@
 #ifndef PROMPT
 #define PROMPT(buffer, saved, direction, index, result) \
 	do { \
-		/* print the first part of the prompt */ \
-		fprintf(stderr, "%s<%s search> %s%s", saved, direction, CYAN, buffer); \
+		/* print the subsearch */ \
+		fprintf(stderr, "%s%s", CYAN, saved); \
+		/* print the direction  */ \
+		fprintf(stderr, "%s<%s search> ", search_index > 0 ? GREEN : RED, direction); \
+		/* print the search buffer */ \
+		fprintf(stderr, "%s%s", CYAN, buffer); \
 		if (index > 0) { \
 			/* save cursor position */ \
 			fprintf(stderr, "\033[s"); \
@@ -345,9 +349,6 @@ int main() {
 		// erase line
 		fprintf(stderr, "\033[2K\r");
 
-		// print the color
-		fprintf(stderr, "%s", search_index > 0 ? GREEN : RED);
-
 		// print the prompt
 		PROMPT(buffer, saved, (action == SEARCH_BACKWARD ? "backward" : "forward"),
 				search_index,
@@ -422,7 +423,7 @@ int main() {
 			action = SEARCH_FORWARD;
 			break;
 
-		case 21: //C-u
+		case 17: //C-q
 			if (strlen(buffer) == 0)
 				break;
 			j = 0;
@@ -450,6 +451,17 @@ int main() {
 			action = SEARCH_BACKWARD;
 			search_result_index = history_size;
 			search_index = 0;
+			break;
+
+		case 21: // C-u
+			buffer[0] = '\0';
+			buffer_pos = 0;
+
+			// reset search
+			action = SEARCH_BACKWARD;
+			search_result_index = history_size;
+			search_index = 0;
+
 			break;
 
 		case 127: // backspace
