@@ -464,6 +464,26 @@ int main() {
 
 			break;
 
+		case 23: // C-w
+			i = 0; // i == 1 means we have reached a non-space character
+			while (buffer_pos > 0) {
+				if (buffer[--buffer_pos] != ' ') {
+					i= 1;
+				} else if (i == 1) {
+					// stop at next space
+					buffer_pos++;
+					break;
+				}
+			}
+			buffer[buffer_pos] = '\0';
+
+			// reset search
+			action = SEARCH_BACKWARD;
+			search_result_index = history_size;
+			search_index = 0;
+
+			break;
+
 		case 127: // backspace
 		case 8: // backspace
 			if (buffer_pos > 0)
