@@ -45,6 +45,7 @@ the following sequence shows how it could help you:
 * C-l: clear screen
 * C-q: save search result and start sub-search.
 * C-u: delete the current search term
+* C-w: delete a word backwards
 * Enter: execute result.
 
 ### Customize the prompt
