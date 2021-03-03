@@ -46,6 +46,8 @@ the following sequence shows how it could help you:
 * C-q: save search result and start sub-search.
 * C-u: delete the current search term
 * C-w: delete a word backwards
+* C-p: cycle through history backwards
+* C-n: cycle through history forwards
 * Enter: execute result.
 
 ### Customize the prompt
