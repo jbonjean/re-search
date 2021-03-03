@@ -22,6 +22,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include "config.h"
+#include <sys/wait.h>
 
 #define NORMAL  "\x1B[0m"
 #define RED  "\x1B[31m"
@@ -64,6 +65,10 @@
 				action_str = ""; \
 				action_color = CYAN; \
 				break; \
+			case EXECUTE: \
+				action_str= "execute"; \
+				action_color = CYAN; \
+				break; \
 			default: \
 				action_str = "??"; \
 				action_color = RED; \
@@ -97,7 +102,7 @@
 #endif /* BASH */
 
 typedef enum {
-	SEARCH_BACKWARD, SEARCH_FORWARD, SCROLL,
+	SEARCH_BACKWARD, SEARCH_FORWARD, SCROLL, EXECUTE,
 } action_t;
 
 /* will be used as exit code to differenciate cases */
@@ -111,6 +116,8 @@ char buffer[MAX_INPUT_LEN];
 char saved[128];
 unsigned long history_size;
 int search_result_index;
+FILE *outfile;
+
 
 void reset_input_mode() {
 	debug("restore terminal settings");
@@ -259,6 +266,30 @@ int parse_history() {
 	return 0;
 }
 
+void execute(char *cmdline) {
+	// Execute commandline in a separate child process
+	int cpid = fork();
+	if (cpid == 0) {
+		reset_input_mode();
+		// print the line to execute
+		fprintf(stdout, "%s$ %s%s\n", CYAN, cmdline, NORMAL);
+		// then execute it
+		execl(getenv("SHELL"), getenv("SHELL"), "-c", cmdline, NULL);
+	}
+	wait(&cpid);
+	set_input_mode();
+}
+
+void append_to_history(char *cmdline) {
+	if (history_size >= MAX_HISTORY_SIZE) {
+		error("too many history entries");
+	}
+	int len = strlen(cmdline);
+	history[history_size] = malloc(len + 1);
+	strncpy(history[history_size], cmdline, len + 1);
+	history_size++;
+}
+
 void restore_terminal() {
 	// reset color
 	fprintf(stderr, "%s", NORMAL);
@@ -305,7 +336,7 @@ void cleanup() {
 
 void accept(int status) {
 	// print result/buffer to stdout
-	fprintf(stdout, "%s",
+	fprintf(outfile, "%s",
 			search_result_index < history_size ?
 					history[search_result_index] : buffer);
 	cleanup();
@@ -317,7 +348,17 @@ void cancel() {
 	exit(SEARCH_CANCEL);
 }
 
-int main() {
+int main(int argc, char **argv) {
+	// write either to stdout or the given file
+	if (argc == 1) {
+		outfile = stdout;
+	} else if (argc == 2) {
+		outfile = fopen(argv[1], "w");
+	} else {
+		error("The only (optional) valid parameter is the path to the file to write the result to.");
+		return 1;
+	}
+
 	// ensure everything is initialized
 	buffer[0] = '\0';
 	history_size = 0;
@@ -553,6 +594,24 @@ int main() {
 			// reset search
 			action = SEARCH_BACKWARD;
 			search_result_index = history_size;
+			search_index = 0;
+
+			break;
+
+		case 15: // ctrl-o
+			restore_terminal();
+			char *cmdline = search_result_index < history_size ? history[search_result_index] : buffer;
+
+			execute(cmdline);
+			append_to_history(cmdline);
+
+			// we don't need the buffer contents in execute mode
+			buffer[0] = '\0';
+			buffer_pos = 0;
+
+			// jump to next history entry
+			action = EXECUTE;
+			search_result_index++;
 			search_index = 0;
 
 			break;

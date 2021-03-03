@@ -1,7 +1,7 @@
 function re_search
 	set -l tmp (mktemp -t fish.XXXXXX)
 	set -x SEARCH_BUFFER (commandline -b)
-	re-search > $tmp
+	re-search $tmp
 	set -l res $status
 	commandline -f repaint
 	if [ -s $tmp ]
