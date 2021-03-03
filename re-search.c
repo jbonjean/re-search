@@ -47,22 +47,45 @@
 	fprintf(stderr, fmt "\n", ##__VA_ARGS__)
 
 #ifndef PROMPT
-#define PROMPT(buffer, saved, direction, index, result) \
+#define PROMPT(buffer, saved, action, index, result) \
 	do { \
+		char *action_str; \
+		char *action_color; \
+		switch (action) { \
+			case SEARCH_BACKWARD: \
+				action_str = "backward"; \
+				action_color = search_index > 0 ? GREEN : RED; \
+				break; \
+			case SEARCH_FORWARD: \
+				action_str = "forward"; \
+				action_color = search_index > 0 ? GREEN : RED; \
+				break; \
+			case SCROLL: \
+				action_str = ""; \
+				action_color = CYAN; \
+				break; \
+			default: \
+				action_str = "??"; \
+				action_color = RED; \
+		} \
 		/* print the subsearch */ \
 		fprintf(stderr, "%s%s", CYAN, saved); \
-		/* print the direction  */ \
-		fprintf(stderr, "%s<%s search> ", search_index > 0 ? GREEN : RED, direction); \
+		/* print the action  */ \
+		fprintf(stderr, "%s<%s> ", action_color, action_str); \
 		/* print the search buffer */ \
 		fprintf(stderr, "%s%s", CYAN, buffer); \
+		/* save cursor position */ \
+		fprintf(stderr, "\033[s"); \
+		/* if there is a result, append its search index */ \
 		if (index > 0) { \
-			/* save cursor position */ \
-			fprintf(stderr, "\033[s"); \
-			/* if there is a result, append it */ \
-			fprintf(stderr, " (%d)[%s%s%s]", index, NORMAL, result, CYAN); \
-			/* restore cursor position */ \
-			fprintf(stderr, "\033[u"); \
-		}} while (0)
+			fprintf(stderr, " (%d)", index); \
+		} \
+		fprintf(stderr, " [%s%s%s]", NORMAL, result, CYAN); \
+		/* restore cursor position */ \
+		fprintf(stderr, "\033[u"); \
+		/* restore to normal font */ \
+		fprintf(stderr, "%s", NORMAL); \
+	} while (0)
 #endif /* PROMPT */
 
 #ifdef BASH
@@ -74,7 +97,7 @@
 #endif /* BASH */
 
 typedef enum {
-	SEARCH_BACKWARD, SEARCH_FORWARD
+	SEARCH_BACKWARD, SEARCH_FORWARD, SCROLL,
 } action_t;
 
 /* will be used as exit code to differenciate cases */
@@ -350,9 +373,9 @@ int main() {
 		fprintf(stderr, "\033[2K\r");
 
 		// print the prompt
-		PROMPT(buffer, saved, (action == SEARCH_BACKWARD ? "backward" : "forward"),
+		PROMPT(buffer, saved, action,
 				search_index,
-				search_index > 0 ? history[search_result_index] : "");
+				search_result_index < history_size ? history[search_result_index] : "");
 
 		fflush(stderr);
 
@@ -480,6 +503,30 @@ int main() {
 			// reset search
 			action = SEARCH_BACKWARD;
 			search_result_index = history_size;
+			search_index = 0;
+
+			break;
+
+		case 16: // C-p
+			if (search_result_index > 0) {
+				search_result_index--;
+			}
+
+			buffer[0] = '\0';
+			buffer_pos = 0;
+			action = SCROLL;
+			search_index = 0;
+
+			break;
+
+		case 14: // C-n
+			if (search_result_index < history_size) {
+				search_result_index++;
+			}
+
+			buffer[0] = '\0';
+			buffer_pos = 0;
+			action = SCROLL;
 			search_index = 0;
 
 			break;
