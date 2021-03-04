@@ -323,8 +323,9 @@ int main() {
 	// disable line wrapping
 	fprintf(stderr, "\033[?7l");
 
+	int noop = 0;
 	while (1) {
-		if (buffer_pos > 0 || strlen(saved) > 0) {
+		if (!noop && (buffer_pos > 0 || strlen(saved) > 0)) {
 			// search in the history array
 			// TODO: factorize?
 			if (action == SEARCH_BACKWARD) {
@@ -345,6 +346,7 @@ int main() {
 				}
 			}
 		}
+		noop = 0;
 
 		// erase line
 		fprintf(stderr, "\033[2K\r");
@@ -497,9 +499,11 @@ int main() {
 			break;
 
 		default:
-			// exclude the first 32 non-printing characters
-			if (c < 32)
+			// ignore the first 32 non-printing characters
+			if (c < 32) {
+				noop = 1;
 				break;
+			}
 
 			// prevent buffer overflow
 			if (buffer_pos >= MAX_INPUT_LEN - 1)
