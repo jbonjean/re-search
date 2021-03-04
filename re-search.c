@@ -85,7 +85,14 @@
 		if (index > 0) { \
 			fprintf(stderr, " (%d)", index); \
 		} \
-		fprintf(stderr, " [%s%s%s]", NORMAL, result, CYAN); \
+		if (search_result_index < history_size) { \
+			/* print the current history entry and the maximum history entry */ \
+			fprintf(stderr, " [%d/%lu]", search_result_index + 1, history_size); \
+		} \
+		if (strlen(result) > 0) { \
+			/* print the actual result */ \
+			fprintf(stderr, " [%s%s%s]", NORMAL, result, CYAN); \
+		} \
 		/* restore cursor position */ \
 		fprintf(stderr, "\033[u"); \
 		/* restore to normal font */ \
