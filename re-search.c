@@ -126,6 +126,29 @@ FILE *try_open_history(const char *name) {
 	return fopen(path, "r");
 }
 
+int append_to_history(const char *cmdline) {
+	if (history_size >= MAX_HISTORY_SIZE) {
+		debug("maximum history size of %i reached. Dropping oldest history entry: %s", MAX_HISTORY_SIZE, history[0]);
+		free(history[0]);
+		for (int i = 1; i < history_size; i++) {
+			history[i-1] = history[i];
+		}
+		history[history_size] = NULL; //empty the last element pointer
+	}
+
+	// append to history array
+	int len = strlen(cmdline);
+	history[history_size] = malloc(len + 1);
+	if (!history[history_size]) {
+		error("cannot allocate memory");
+		return 1;
+	}
+	strncpy(history[history_size], cmdline, len + 1);
+	history_size++;
+
+	return 0;
+}
+
 int parse_history() {
 	debug("parse history");
 
@@ -177,18 +200,7 @@ int parse_history() {
 		len = j;
 #endif
 
-		// append to history array
-		history[history_size] = malloc(len + 1);
-		if (!history[history_size]) {
-			error("cannot allocate memory");
-			fclose(fp);
-			return 1;
-		}
-		strncpy(history[history_size], cmdline, len + 1);
-		history_size++;
-
-		if (history_size >= MAX_HISTORY_SIZE) {
-			error("too many history entries");
+		if (append_to_history(cmdline)) {
 			fclose(fp);
 			return 1;
 		}
