@@ -157,6 +157,7 @@ int append_to_history(const char *cmdline) {
 			history[i-1] = history[i];
 		}
 		history[history_size] = NULL; //empty the last element pointer
+		history_size--;
 	}
 
 	// append to history array
