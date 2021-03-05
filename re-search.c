@@ -167,7 +167,7 @@ int parse_history() {
 		// sanitize
 		i = CMD_PREFIX_LEN; j = 0;
 		while (i < len) {
-			if (cmdline[i] == '\\' && cmdline[j-1] == '\\') {
+			if (j > 0 && cmdline[i] == '\\' && cmdline[j-1] == '\\') {
 				j--;
 			} else if (i < (len -1) && cmdline[i] == '\\' && cmdline[i + 1] == 'n') {
 				cmdline[j] = '\n';
