@@ -21,6 +21,7 @@
 #include <string.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <errno.h>
 #include "config.h"
 
 #define NORMAL  "\x1B[0m"
@@ -175,6 +176,7 @@ int append_to_history(const char *cmdline) {
 int parse_history() {
 	debug("parse history");
 
+	char *histfile;
 	FILE* fp;
 	char cmdline[MAX_LINE_LEN];
 	int i,j,len;
@@ -183,13 +185,18 @@ int parse_history() {
 #endif
 
 #ifdef BASH
-	fp = try_open_history(".bash_history");
+	histfile = ".bash_history";
+	fp = try_open_history(histfile);
 #else
-	fp = try_open_history(".local/share/fish/fish_history");
-	if (!fp) fp = try_open_history(".config/fish/fish_history");
+	histfile = ".local/share/fish/fish_history";
+	fp = try_open_history(histfile);
+	if (!fp && errno == ENOENT) {
+		histfile = ".config/fish/fish_history";
+		fp = try_open_history(histfile);
+	}
 #endif
 	if (!fp) {
-		error("cannot open history file");
+		error("cannot open history file %s/%s: %s", getenv("HOME"), histfile, strerror(errno));
 		return 1;
 	}
 
