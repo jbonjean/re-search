@@ -87,7 +87,7 @@
 		} \
 		if (search_result_index < history_size) { \
 			/* print the current history entry and the maximum history entry */ \
-			fprintf(stderr, " [%d/%lu]", search_result_index + 1, history_size); \
+			fprintf(stderr, " [%lu/%lu]", history_size - search_result_index, history_size); \
 		} \
 		if (strlen(result) > 0) { \
 			/* print the actual result */ \
