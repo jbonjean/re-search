@@ -35,6 +35,7 @@
 #define MAX_INPUT_LEN 100
 #define MAX_LINE_LEN 512
 #define MAX_HISTORY_SIZE (1024 * 256)
+#define MAX_SUBSEARCHES 8
 
 #ifdef DEBUG
 #define debug(fmt, ...) \
@@ -48,7 +49,7 @@
 	fprintf(stderr, fmt "\n", ##__VA_ARGS__)
 
 #ifndef PROMPT
-#define PROMPT(buffer, saved, action, index, result) \
+#define PROMPT(buffer, action, index, result) \
 	do { \
 		char *action_str; \
 		char *action_color; \
@@ -73,8 +74,14 @@
 				action_str = "??"; \
 				action_color = RED; \
 		} \
-		/* print the subsearch */ \
-		fprintf(stderr, "%s%s", CYAN, saved); \
+		/* print the subsearches */ \
+		if (no_of_subsearches > 0) { \
+			fprintf(stderr, "%s", CYAN); \
+			for (int i= 0; i < no_of_subsearches; i++) { \
+				fprintf(stderr, "[%s]", subsearches[i]); \
+			} \
+			fprintf(stderr, "%s", NORMAL); \
+		} \
 		/* print the action  */ \
 		fprintf(stderr, "%s<%s> ", action_color, action_str); \
 		/* print the search buffer */ \
@@ -113,9 +120,10 @@ typedef enum {
 struct termios saved_attributes;
 char *history[MAX_HISTORY_SIZE];
 char buffer[MAX_INPUT_LEN];
-char saved[128];
 unsigned long history_size;
 int search_result_index;
+char subsearches[MAX_SUBSEARCHES][MAX_INPUT_LEN];
+int no_of_subsearches;
 FILE *outfile;
 
 
@@ -338,6 +346,20 @@ void cancel() {
 	exit(SEARCH_CANCEL);
 }
 
+int matches_all_searches(char *history_entry) {
+	for (int i=0; i < no_of_subsearches; i++) {
+		if (!strstr(history_entry, subsearches[i])) {
+			return 0;
+		}
+	}
+
+	if (strstr(history_entry, buffer)) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 int main(int argc, char **argv) {
 	// write either to stdout or the given file
 	if (argc == 1) {
@@ -352,6 +374,7 @@ int main(int argc, char **argv) {
 	// ensure everything is initialized
 	buffer[0] = '\0';
 	history_size = 0;
+	no_of_subsearches = 0;
 
 	// handle sigint for clean exit
 	signal(SIGINT, cancel);
@@ -370,7 +393,7 @@ int main(int argc, char **argv) {
 
 	int search_index = 0;
 	int buffer_pos = 0;
-	int i, j;
+	int i;
 	action_t action = SEARCH_BACKWARD;
 	search_result_index = history_size;
 
@@ -391,12 +414,12 @@ int main(int argc, char **argv) {
 
 	int noop = 0;
 	while (1) {
-		if (!noop && (buffer_pos > 0 || strlen(saved) > 0)) {
+		if (!noop && (buffer_pos > 0 || no_of_subsearches > 0)) {
 			// search in the history array
 			// TODO: factorize?
 			if (action == SEARCH_BACKWARD) {
 				for (i = search_result_index - 1; i >= 0; i--) {
-					if (strstr(history[i], buffer)) {
+					if (matches_all_searches(history[i])) {
 						search_index++;
 						search_result_index = i;
 						break;
@@ -404,7 +427,7 @@ int main(int argc, char **argv) {
 				}
 			} else {
 				for (i = search_result_index + 1; i < history_size; i++) {
-					if (strstr(history[i], buffer)) {
+					if (matches_all_searches(history[i])) {
 						search_index--;
 						search_result_index = i;
 						break;
@@ -418,7 +441,7 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "\033[2K\r");
 
 		// print the prompt
-		PROMPT(buffer, saved, action,
+		PROMPT(buffer, action,
 				search_index,
 				search_result_index < history_size ? history[search_result_index] : "");
 
@@ -494,24 +517,10 @@ int main(int argc, char **argv) {
 		case 17: //C-q
 			if (strlen(buffer) == 0)
 				break;
-			j = 0;
-			// filter the history array to remove non-matching entries
-			for (i = 0; i < history_size; i++) {
-				if (strstr(history[i], buffer) && i != j) {
-					history[j] = history[i];
-					// update the search result index
-					if (search_result_index == i)
-						search_result_index = j;
-					j++;
-				} else
-					free(history[i]);
-			}
-			// adjust history size
-			history_size = j;
-			// add the saved search keyword
-			strncat(saved, "[", sizeof(saved) - 1);
-			strncat(saved, buffer, sizeof(saved) - 1);
-			strncat(saved, "]", sizeof(saved) - 1);
+
+			strcpy(subsearches[no_of_subsearches], buffer);
+			no_of_subsearches++;
+
 			// reset the buffer
 			buffer[0] = '\0';
 			buffer_pos = 0;
