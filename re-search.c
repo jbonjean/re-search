@@ -530,6 +530,14 @@ int main(int argc, char **argv) {
 			search_index = 0;
 			break;
 
+		case 24: //C-x
+			if (no_of_subsearches == 0)
+				break;
+
+			no_of_subsearches--;
+
+			break;
+
 		case 21: // C-u
 			buffer[0] = '\0';
 			buffer_pos = 0;
