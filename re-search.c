@@ -415,6 +415,18 @@ int main(int argc, char **argv) {
 	int noop = 0;
 	while (1) {
 		if (!noop && (buffer_pos > 0 || no_of_subsearches > 0)) {
+			if (search_index < 0 && (action == SEARCH_BACKWARD || action == SEARCH_FORWARD)) {
+				// recalculate the number of matching entries up to the current
+				// history index. May be necessary after a SCROLL action
+				debug("Recalculating search_index");
+				search_index = 0;
+				for (i = history_size - 1;  i > search_result_index - 1; i--) {
+					if (matches_all_searches(history[i])) {
+						search_index++;
+					}
+				}
+			}
+
 			// search in the history array
 			// TODO: factorize?
 			if (action == SEARCH_BACKWARD) {
@@ -577,7 +589,7 @@ int main(int argc, char **argv) {
 			buffer[0] = '\0';
 			buffer_pos = 0;
 			action = SCROLL;
-			search_index = 0;
+			search_index = -1;
 
 			break;
 
@@ -589,7 +601,7 @@ int main(int argc, char **argv) {
 			buffer[0] = '\0';
 			buffer_pos = 0;
 			action = SCROLL;
-			search_index = 0;
+			search_index = -1;
 
 			break;
 
