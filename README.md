@@ -36,6 +36,25 @@ the following sequence shows how it could help you:
 * [C-q]
 * couchbase
 
+#### Enable bash-like history scrolling
+
+By default fish does not scroll the history buffer on "up" an "C-p", but
+instead executes a search with the current commandline content as search
+string.
+
+To enable the usual scrolling regardless of the current content of the
+commandline copy the file `re_search_scroll.fish` to the directory
+`~/.config/fish/functions/` and add a binding to
+`~/.config/fish/functions/fish_user_key_bindings.fish`:
+```
+bind \cp re_search_scroll
+```
+to bind it to "Ctrl-p" or
+```
+bind \e\[A re_search_scroll
+```
+to bind it to the "Up" arrow.
+
 ### Internal key bindings
 
 * C-r, up, pg-up: backward search.
