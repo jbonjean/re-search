@@ -355,6 +355,19 @@ int main() {
 			buffer[--buffer_pos] = '\0';
 	}
 
+	// if the start index environment variable is set, jump to the
+	// corresponding history entry
+	char* start_index = getenv("START_INDEX");
+	if (start_index && strlen(start_index) > 0) {
+		int idx= strtol(start_index, NULL, 10);
+		search_result_index = history_size - idx;
+		action = SCROLL;
+
+		// ignore $SEARCH_BUFFER
+		buffer[0] = '\0';
+		buffer_pos = 0;
+	}
+
 	// disable line wrapping
 	fprintf(stderr, "\033[?7l");
 
