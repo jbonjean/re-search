@@ -425,7 +425,7 @@ int main(int argc, char **argv) {
 						break;
 					}
 				}
-			} else {
+			} else if (action == SEARCH_FORWARD) {
 				for (i = search_result_index + 1; i < history_size; i++) {
 					if (matches_all_searches(history[i])) {
 						search_index--;
