@@ -144,9 +144,9 @@ int set_input_mode() {
 	return 0;
 }
 
-FILE *try_open_history(const char *name) {
+FILE *try_open_history(const char *local_path, const char *filename) {
 	char path[1024];
-	snprintf(path, sizeof(path), "%s/%s", getenv("HOME"), name);
+	snprintf(path, sizeof(path), "%s/%s/%s", getenv("HOME"), local_path, filename);
 	return fopen(path, "r");
 }
 
@@ -176,7 +176,8 @@ int append_to_history(const char *cmdline) {
 int parse_history() {
 	debug("parse history");
 
-	char *histfile;
+	char *histpath;
+	char histfile[1024];
 	FILE* fp;
 	char cmdline[MAX_LINE_LEN];
 	int i,j,len;
@@ -185,18 +186,27 @@ int parse_history() {
 #endif
 
 #ifdef BASH
+	histpath = "."
 	histfile = ".bash_history";
-	fp = try_open_history(histfile);
+	snprintf(histfile, sizeof(histfile), ".bash_history", fish_session);
+	fp = try_open_history(histpath, histfile);
 #else
-	histfile = ".local/share/fish/fish_history";
-	fp = try_open_history(histfile);
+	char *fish_session = getenv("fish_history");
+	if (!fish_session) {
+		fish_session = "fish";
+	}
+	snprintf(histfile, sizeof(histfile), "%s_history", fish_session);
+
+	histpath = ".local/share/fish";
+	fp = try_open_history(histpath, histfile);
 	if (!fp && errno == ENOENT) {
-		histfile = ".config/fish/fish_history";
-		fp = try_open_history(histfile);
+		debug("cannot open history file %s/%s/%s: %s", getenv("HOME"), histpath, histfile, strerror(errno));
+		histpath = ".config/fish";
+		fp = try_open_history(histpath, histfile);
 	}
 #endif
 	if (!fp) {
-		error("cannot open history file %s/%s: %s", getenv("HOME"), histfile, strerror(errno));
+		error("cannot open history file %s/%s/%s: %s", getenv("HOME"), histpath, histfile, strerror(errno));
 		return 1;
 	}
 
