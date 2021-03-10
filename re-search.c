@@ -214,10 +214,15 @@ int parse_history() {
 		// sanitize
 		i = CMD_PREFIX_LEN; j = 0;
 		while (i < len) {
-			if (i < (len - 1) && cmdline[i] == '\\' && cmdline[i+1] == '\\') {
+			if (j > 0 && cmdline[i] == '\\' && cmdline[j-1] == '\\') {
+				j--;
+			} else if (i < (len -1) && cmdline[i] == '\\' && cmdline[i + 1] == 'n') {
+				cmdline[j] = '\n';
 				i++;
+			} else {
+				cmdline[j] = cmdline[i];
 			}
-			cmdline[j] = cmdline[i];
+
 			i++; j++;
 		}
 		cmdline[j] = '\0';
